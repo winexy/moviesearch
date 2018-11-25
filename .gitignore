@@ -1,0 +1,5 @@
+db.sqlite3
+node_modules/
+static/javascript/app.js
+venv/
+.idea/
