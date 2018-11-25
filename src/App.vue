@@ -1,8 +1,5 @@
 <template>
     <div id="app">
-        <div class="authorization">
-            <app-button invert>Sign in</app-button>
-        </div>
         <h1 class="heading">🦄 gogogo</h1>
         <div class="search-form">
             <input
