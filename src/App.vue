@@ -1,82 +1,59 @@
 <template>
     <div id="app">
-        <h1 class="heading">🦄 gogogo</h1>
-        <div class="search-form">
-            <input
-                    type="text"
-                    class="search-form__input"
-                    placeholder="movie title"
-                    v-model.trim="searchInput"
-                    @input="search"
-                    ref="input"
-            >
+        <div class="header">
+            <router-link tag="h1"  to="/" class="heading">
+                🦄 gogogo
+            </router-link>
+            <div style="display: flex; justify-content: center; align-content: center">
+                <template v-if="$store.state.user.id">
+                    <div class="block">
+                        <router-link class="button-kek" to="/cabinet">Profile</router-link>
+                        <a @click="logout" class="button-kek">Logout</a>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="block">
+                        <router-link to="/auth" class="button-kek">Sign in</router-link>
+                        <router-link to="/auth/registration" class="button-kek">Sign up</router-link>
+                    </div>
+                </template>
+            </div>
         </div>
-        <search-results
-                :results="results"
-                @show-details="showMovieDetails"
-        ></search-results>
-        <modal-window
-                v-model="showModal"
-                @input="movie = null"
-        >
-            <movie-details v-if="movie" :movie="movie"></movie-details>
-        </modal-window>
+        <router-view></router-view>
     </div>
 </template>
 
 <script>
-    import SearchResults from './components/SearchResults';
-    import AppButton from './components/AppButton';
-    import ModalWindow from './components/ModalWindow';
-    import MovieDetails from './components/MovieDetails';
-    import debounce from 'lodash/debounce';
-
     export default {
         name: "App",
-        components: {
-            SearchResults,
-            AppButton,
-            ModalWindow,
-            MovieDetails
-        },
-        data() {
-            return {
-                searchInput: '',
-                results: {},
-                showModal: false,
-                movie: null
-            }
-        },
         methods: {
-            search: debounce(async function () {
-                if (!this.searchInput.length) {
-                    this.results = {};
-                    return;
-                }
-
-                const {data} = await this.$api.get(`search?value=${this.searchInput}`);
-
-                if (data.Search) {
-                    data.Search = data.Search.map((movie, i) => ({
-                        ...movie,
-                        key: movie.imdbID + i
-                    }));
-                }
-
-                this.results = data;
-            }, 500),
-            async showMovieDetails(imdbID) {
-                this.showModal = true;
-
-                const {data} = await this.$api.get(`movie?id=${imdbID}`);
-
-                this.movie = data;
+            logout() {
+                this.$store.commit('setUser', '');
             }
         },
-        mounted() {
-            this.$nextTick(() => {
-                this.$refs.input.focus();
-            })
+        created() {
+            let user = this.$store.user;
+
+            if (!user) {
+                user = localStorage.getItem('user');
+                if (user) {
+                    user = JSON.parse(user);
+                    this.$store.commit('setUser', user);
+                }
+            }
+
+            if (user) {
+                this.$api.get(`/get_user_movies?user=${user.id}`)
+                    .then(response=> {
+                        let movies = response.data.map(el => ({
+                                ...el.fields,
+                                pk: el.pk
+                        }));
+
+                        this.$store.commit('setMovies', movies);
+                    });
+            }
+
         }
     }
 </script>
@@ -105,52 +82,47 @@
         align-items: center;
         flex-direction: column;
         padding-top: 100px;
-        height: 100vh;
+        /*height: 100vh;*/
         width: 100vw;
         background: var(--dark);
         box-sizing: border-box;
     }
 
-    .search-form {
+    .header {
         width: 800px;
-        margin: 0 auto 30px auto;
-    }
-
-    .search-form__input {
-        width: 100%;
-        padding: 20px;
-        text-align: center;
-        border-radius: var(--radius);
-        border: none;
-        outline: none;
-        box-shadow: var(--shadow);
-        font-size: 25px;
-        box-sizing: border-box;
-        opacity: .9;
-    }
-
-    .search-form__input:focus {
-        opacity: 1;
+        display: flex;
+        justify-content: space-between;
     }
 
     .heading {
-        text-align: center;
-        color: #ffffff;
-        margin: 10px;
+        cursor: pointer;
     }
 
-    .mobile {
-        display: none;
+
+    .block {
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    @media screen and (max-width: 800px) {
-        .search-form {
-            width: 90%;
-        }
-
-         .mobile {
-            display: flex;
-        }
+    .button-kek {
+        display: block;
+        border: 1px solid orangered;
+        color: orangered;
+        text-decoration: none;
+        padding: 5px 20px;
+        border-radius: 3px;
+        margin: 0 5px;
+        transition: .3s ease-in-out;
+        cursor: pointer;
     }
 
+    .button-kek:hover {
+        color: white;
+        background: orangered;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
 </style>

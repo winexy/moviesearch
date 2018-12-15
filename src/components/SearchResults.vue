@@ -37,7 +37,7 @@
     }
 </script>
 
-<style scoped>
+<style >
     .search-results {
         width: 1080px;
     }

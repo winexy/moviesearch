@@ -6,7 +6,7 @@ from django.db import models
 # Create your models here.
 
 class User(models.Model):
-    login = models.CharField(max_length=30, verbose_name='Логин')
+    login = models.CharField(max_length=30, verbose_name='Логин', unique=True)
     password = models.CharField(max_length=30, verbose_name='Пароль')
 
     def __str__(self):
@@ -15,5 +15,5 @@ class User(models.Model):
 
 class UserMovies(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    movie_id = models.IntegerField(verbose_name='imdbID')
+    movie_id = models.CharField(max_length=50, verbose_name='imdbID', unique=True)
 

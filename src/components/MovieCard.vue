@@ -8,21 +8,53 @@
         <span class="movie-card__title">{{ movie.Title }}</span>
         <span class="movie-card__year">{{ movie.Year }}</span>
         <app-button mobile>Show more</app-button>
+        <heart-button
+            v-if="$store.state.user.id"
+            @click="like"
+            :active="active"
+        />
     </div>
 </template>
 
 <script>
     import AppButton from './AppButton';
+    import HeartButton from './HeartButton';
 
     export default {
         name: "MovieCard",
         components: {
+            HeartButton,
             AppButton
         },
         props: {
             movie: {
                 type: Object,
                 required: true
+            },
+        },
+        data() {
+            return {
+                active: false
+            }
+        },
+        methods: {
+            like(state) {
+                let user = this.$store.state.user.id;
+
+                if (!user) return;
+
+                this.$api.get(`/like?id=${this.movie.imdbID}&like=${state}&user=${user}`)
+                    .then(response => {
+                        let { data } = response;
+                        this.active = !!data;
+                        console.log(response);
+                    });
+            }
+        },
+        created() {
+            let movies = this.$store.state.movies;
+            if (movies.length) {
+                this.active = movies.some(movie => movie.movie_id === this.movie.imdbID);
             }
         }
     }
@@ -38,6 +70,7 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        position: relative;
         flex-direction: column;
         box-sizing: border-box;
         width: 260px;
